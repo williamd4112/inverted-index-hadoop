@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -22,21 +23,7 @@ public class InvertedIndex {
 	{
 		Configuration conf = new Configuration();
 		
-		int fileCounter = 0;
-		
-		Path path = new Path(args[0]);
-		FileStatus[] status = FileSystem.get(conf).listStatus(path);
-		FSDataOutputStream fsStream = FileSystem.get(conf).create(new Path("./filetable"));
-		BufferedWriter out =
-	              new BufferedWriter(new OutputStreamWriter(fsStream,"UTF-8"));
-		for(FileStatus s : status)
-		{
-			out.write(String.format("%d\t%s\n",fileCounter,s.getPath().getName()));
-			conf.setInt(s.getPath().getName(), fileCounter);
-			fileCounter++;
-		}
-		out.flush();
-		out.close();
+		createFileTable(args, conf);
 		
 		Job job = Job.getInstance(conf, "InvertedIndex");
 		job.setJarByClass(InvertedIndex.class);
@@ -63,6 +50,25 @@ public class InvertedIndex {
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
 		
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
+	}
+
+	private static void createFileTable(String[] args, Configuration conf)
+			throws FileNotFoundException, IOException, UnsupportedEncodingException {
+		int fileCounter = 0;
+		
+		Path path = new Path(args[0]);
+		FileStatus[] status = FileSystem.get(conf).listStatus(path);
+		FSDataOutputStream fsStream = FileSystem.get(conf).create(new Path("./filetable"));
+		BufferedWriter out =
+	              new BufferedWriter(new OutputStreamWriter(fsStream,"UTF-8"));
+		for(FileStatus s : status)
+		{
+			out.write(String.format("%d\t%s\n",fileCounter,s.getPath().getName()));
+			conf.setInt(s.getPath().getName(), fileCounter);
+			fileCounter++;
+		}
+		out.flush();
+		out.close();
 	}
 	
 

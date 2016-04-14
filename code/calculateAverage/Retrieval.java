@@ -22,30 +22,25 @@ public class Retrieval {
 		conf.set("FileDir", args[3]);
 		
 		buildKeywordList(args, conf);
-		conf.setInt("Rank", 1);
 		
 		int fileCounter = setupConfiguration(conf);
 		conf.setInt("NumFiles", fileCounter);
 		
 		Job job = Job.getInstance(conf, "Retrieval");
-		job.setJarByClass(InvertedIndex.class);
+		job.setJarByClass(Retrieval.class);
 		
 		// set the class of each stage in mapreduce
 		job.setMapperClass(RetrievalMapper.class);
-		job.setPartitionerClass(RetrievalPartitioner.class);
-		//job.setCombinerClass(RetrievalCombiner.class);
-		job.setSortComparatorClass(RetrievalComparator.class);
-		job.setGroupingComparatorClass(RetrievalGroupingComparator.class);
 		job.setReducerClass(RetrievalReducer.class);
 		
 		// set the output class of Mapper and Reducer
-		job.setMapOutputKeyClass(RetrievalKey.class);
+		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(RetrievalRecord.class);
 			
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 		
-		job.setNumReduceTasks(fileCounter);
+		job.setNumReduceTasks(1);
 		
 		// add input/output path
 		FileInputFormat.addInputPath(job, new Path(args[0]));

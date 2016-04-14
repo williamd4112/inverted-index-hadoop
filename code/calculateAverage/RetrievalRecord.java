@@ -9,22 +9,17 @@ import org.apache.hadoop.io.Writable;
 
 public class RetrievalRecord implements Writable{
 
-	private double score;
+	private String term;
+	private int df;
 	private ArrayList<Long> offsets = new ArrayList<Long>();
 	
-	public RetrievalRecord(double score)
-	{
-		this.score = score;
-	}
-	
 	public RetrievalRecord()
-	{
-		this.score = 0;
-	}
+	{}
 	
-	public double getScore()
+	public RetrievalRecord(String term, int df)
 	{
-		return this.score;
+		this.term = term;
+		this.df = df;
 	}
 	
 	public void addOffset(long offset)
@@ -38,7 +33,11 @@ public class RetrievalRecord implements Writable{
 		{
 			this.addOffset(offset);
 		}
-		this.score += r.score;
+	}
+	
+	public double calculateScore(int N)
+	{
+		return this.offsets.size() * Math.log((double)N / (double)df);
 	}
 	
 	public ArrayList<Long> getOffsets()
@@ -48,7 +47,8 @@ public class RetrievalRecord implements Writable{
 	
 	@Override
 	public void readFields(DataInput input) throws IOException {
-		this.score = input.readDouble();
+		this.term = input.readUTF();
+		this.df = input.readInt();
 		this.offsets.clear();
 		int n = input.readInt();
 		for(int i = 0; i < n; i++)
@@ -57,7 +57,8 @@ public class RetrievalRecord implements Writable{
 
 	@Override
 	public void write(DataOutput output) throws IOException {
-		output.writeDouble(this.score);
+		output.writeUTF(this.term);
+		output.writeInt(this.df);
 		output.writeInt(this.offsets.size());
 		for(Long offset : this.offsets)
 			output.writeLong(offset);
@@ -66,7 +67,18 @@ public class RetrievalRecord implements Writable{
 	@Override
 	public String toString()
 	{
-		return String.format("score =  %f",score);
+		boolean first = true;
+		StringBuffer buff = new StringBuffer();
+		buff.append(this.term + " " + this.df + " ");
+		buff.append("[");
+		for(Long offset : offsets)
+		{
+			if(!first) buff.append(",");
+			buff.append(offset);
+			first = false;
+		}
+		buff.append("]");
+		return buff.toString();
 	}
 
 }

@@ -9,46 +9,61 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 public class RetrievalMapper 
-	extends Mapper<LongWritable, Text, RetrievalKey, RetrievalRecord> {
+	extends Mapper<LongWritable, Text, Text, RetrievalRecord> {
 	
+	private Configuration conf;
+	private Query query;
+	
+	@Override
+	protected void setup(Mapper<LongWritable, Text, Text, RetrievalRecord>.Context context)
+			throws IOException, InterruptedException {
+		super.setup(context);
+		this.conf = context.getConfiguration();
+		this.query = new Query(this.conf.getStrings("Keywords"));
+	}
+
+	/**
+	 * map
+	 * output:
+	 * 	<filename, {term df [offset1, offset2, ...]}>
+	 */
 	public void map(LongWritable key, Text value, Context context) 
 			throws IOException, InterruptedException {
-		Configuration conf = context.getConfiguration();
 
 		String[] parts = value.toString().split(";");	
 		String[] term_df = parts[0].split("\\s+");
 		
 		String term = term_df[0];
-		if(!conf.getStringCollection("Keywords").contains(term))
-			return;
 		
-		long df = Long.valueOf(term_df[1]);
-		
-		for(int i = 1; i < parts.length; i++)
+		if(query.match(term))
 		{
-			String[] fid_tf = parts[i].split("\\s+");
-			int fid = Integer.valueOf(fid_tf[0]);
-			long tf = Long.valueOf(fid_tf[1]);
+			int df = Integer.valueOf(term_df[1]);
 			
-			String fid_str = String.format("file%d",fid);
-			String filename = conf.get(fid_str);
-			
-			double w = tf * Math.log((double)conf.getInt("NumFiles", 0) / (double)df);
-			
-			RetrievalRecord value_record = new RetrievalRecord(w);
-			String offsets_str = fid_tf[2].substring(1, fid_tf[2].length() - 1);
-			String[] offsets = offsets_str.split(",");
-
-			for(String offset : offsets)
+			for(int i = 1; i < parts.length; i++)
 			{
-				value_record.addOffset(Long.valueOf(offset));
+				String[] fid_tf = parts[i].split("\\s+");
+				String filename = findFilename(Integer.valueOf(fid_tf[0]));
+				long tf = Long.valueOf(fid_tf[1]);
+				
+				RetrievalRecord value_record =
+						new RetrievalRecord(term, df);
+				
+				// Parse offset
+				String offsets_str = fid_tf[2].substring(1, fid_tf[2].length() - 1);
+				String[] offsets = offsets_str.split(",");
+
+				for(String offset : offsets)
+				{
+					value_record.addOffset(Long.valueOf(offset));
+				}
+				context.write(new Text(filename), value_record);
 			}
-			
-			RetrievalKey rkey = new RetrievalKey(fid, filename, w);
-			context.write(
-					rkey, 
-					value_record);
-			System.out.println("MapKey: " + filename + "\tScore: " + rkey.getScore());
 		}
+	}
+
+	private String findFilename(int fid) {
+		String fid_str = String.format("file%d",fid);
+		String filename = conf.get(fid_str);
+		return filename;
 	}
 }
