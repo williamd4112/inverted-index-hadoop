@@ -40,8 +40,10 @@ public class ResultReducer
 		{
 			for(RetrievalRecord r : val.getList())
 			{
+				int order = 0;
 				for(Long offset : r.getOffsets())
 				{
+					if(order++ >= 10) break;
 					StringBuffer line = new StringBuffer();
 					DataUtil.readline(fsd, line, offset);
 					buff.append(line.toString() + "\n");

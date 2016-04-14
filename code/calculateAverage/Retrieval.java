@@ -70,7 +70,7 @@ public class Retrieval {
 
 	private static void buildKeywordList(String[] args, Configuration conf) {
 		// Set first keyword set
-		conf.setStrings("Keywords", args[4].split(","));
+		conf.setStrings("Keywords", args[4].split("\\s+"));
 		
 		System.out.println(args[4]);
 		for(String s : conf.getStrings("Keywords"))
