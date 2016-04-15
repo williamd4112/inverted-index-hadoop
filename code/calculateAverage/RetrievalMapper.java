@@ -18,6 +18,7 @@ public class RetrievalMapper
 	protected void setup(Mapper<LongWritable, Text, Text, RetrievalRecord>.Context context)
 			throws IOException, InterruptedException {
 		super.setup(context);
+		
 		this.conf = context.getConfiguration();
 		this.query = new Query(this.conf.getStrings("Keywords"));
 	}

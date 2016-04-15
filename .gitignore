@@ -1,0 +1,7 @@
+bin/
+src/
+class/
+input/
+output/
+*.jar
+

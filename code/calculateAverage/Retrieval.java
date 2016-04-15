@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -21,6 +23,7 @@ public class Retrieval {
 		Configuration conf = new Configuration();
 		conf.set("FileDir", args[3]);
 		
+		conf.set("Query", args[4]);
 		buildKeywordList(args, conf);
 		
 		int fileCounter = setupConfiguration(conf);
@@ -68,9 +71,25 @@ public class Retrieval {
 		return fileCounter;
 	}
 
-	private static void buildKeywordList(String[] args, Configuration conf) {
+	private static void buildKeywordList(String[] args, Configuration conf) 
+	{
 		// Set first keyword set
-		conf.setStrings("Keywords", args[4].split("\\s+"));
+		
+		StringTokenizer tokenizer = new StringTokenizer(args[4]);
+		ArrayList<String> keywords = new ArrayList<String>();
+		
+		while(tokenizer.hasMoreTokens())
+		{
+			String token = tokenizer.nextToken();
+			if(token.matches("[A-Za-z]+"))
+			{
+				keywords.add(token);
+			}
+		}
+		
+		String[] keyword_array = new String[keywords.size()];
+		keywords.toArray(keyword_array);
+		conf.setStrings("Keywords", keyword_array);
 		
 		System.out.println(args[4]);
 		for(String s : conf.getStrings("Keywords"))

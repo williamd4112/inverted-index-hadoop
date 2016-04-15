@@ -27,6 +27,11 @@ public class RetrievalRecord implements Writable{
 		this.offsets.add(offset);
 	}
 	
+	public String getTerm()
+	{
+		return this.term;
+	}
+	
 	public void or(RetrievalRecord r)
 	{
 		for(Long offset : r.offsets)
