@@ -4,6 +4,7 @@ class/
 input/
 output/
 *.jar
+copyFromServer.sh
 .classpath
 .project
 

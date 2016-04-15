@@ -5,10 +5,10 @@
 #hdfs dfs -cat /user/TA/CalculateAverage/Output/part-*
 
 input_directory=input
-your_hadoop_output_directory=output
+your_hadoop_output_directory=inverted_index
 
 hdfs dfs -rm -r $your_hadoop_output_directory
-hadoop jar InvertedIndex.jar calculateAverage.InvertedIndex $input_directory $your_hadoop_output_directory
+hadoop jar InvertedIndex.jar calculateAverage.Driver $input_directory $your_hadoop_output_directory i
 hdfs dfs -cat $your_hadoop_output_directory/part-*
-rm -r output
-hdfs dfs -get output .
+rm -r $your_hadoop_output_directory
+hdfs dfs -get $your_hadoop_output_directory .
