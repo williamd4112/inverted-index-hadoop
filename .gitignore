@@ -4,4 +4,6 @@ class/
 input/
 output/
 *.jar
+.classpath
+.project
 
